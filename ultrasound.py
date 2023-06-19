@@ -50,21 +50,12 @@ screen_height = root.winfo_screenheight()
 screen_width = root.winfo_screenwidth()
 
 # What fraction of the screen height the window should take up
-SCALE = 0.9
+SCALE = 1.0
 
-# The videos are 1024x768 so 1.33 aspect ratio. This will make
-# sure the video doesn't get all distorted.
-VIDEO_ASPECT_RATIO = 1.33
-
-WINDOW_HEIGHT = screen_height
-WINDOW_WIDTH = screen_width
+WINDOW_HEIGHT = screen_height*SCALE
+WINDOW_WIDTH = screen_width*SCALE
 
 WINDOW_NAME = "ultrasound"
-FULLSCREEN = True
-
-# if FULLSCREEN:
-#     cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
-#     #cv2.setWindowProperty(WINDOW_NAME, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
 # Set the currently playing video to None
 current_video = None
@@ -74,24 +65,22 @@ rfid_code = None
 tilt_sensor = False
 
 ports = [port for port in serial.tools.list_ports.comports() if "Arduino" in port.description]
-# if len(ports) == 0:
-#     print("Error: No arduino ports found. Exiting...")
-#     sys.exit(1)
-# elif len(ports) > 1:
-#     print(f"Warning: More than one arduino found. Using the first one: {ports[0].description}")
-#
-# arduino = serial.Serial(ports[0], 9600)
+if len(ports) == 0:
+    print("Error: No arduino ports found. Exiting...")
+    sys.exit(1)
+elif len(ports) > 1:
+    print(f"Warning: More than one arduino found. Using the first one: {ports[0].description}")
+
+arduino = serial.Serial(ports[0], 9600)
 
 while True:
-    # # Read a line of data from the serial port
-    # data = arduino.readline().decode()
-    # cleandata = data.strip().split()
-    # id = cleandata[0] + cleandata[1] + cleandata[2] + cleandata[3]
-    # state = cleandata[4]
-    # print(id)
-    # print(state)
-    id = "FD8F8E63"
-    state = "TRUE"
+    # Read a line of data from the serial port
+    data = arduino.readline().decode()
+    cleandata = data.strip().split()
+    id = cleandata[0] + cleandata[1] + cleandata[2] + cleandata[3]
+    state = cleandata[4]
+    print(id)
+    print(state)
 
     if rfid_code != id or tilt_sensor != state:  # Checks if RFID code or tilt sensor state has changed
         if id in VIDEOS.keys():  # checks if 'id' is present as a key in the 'videos' dictionary
@@ -118,3 +107,4 @@ while True:
             current_video.release()
             cv2.destroyAllWindows()
             current_video = None
+
