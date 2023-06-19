@@ -1,16 +1,15 @@
 from pathlib import Path
+import sys
 import serial
+import serial.tools.list_ports
 import cv2
-import time
 import os
-import glob
+from tkinter import * 
+from tkinter.ttk import *
 
-# Set the RFID code and tilt sensor state to initial values
-rfid_code = None
-tilt_sensor = False
 
 # 'key' library of video file names and associated RFID codes
-videos = {
+VIDEOS = {
     "FD8F8E63": {"FALSE": "MC-1A-Long.mp4", "TRUE": "MC-1A-Trans.mp4"},
     "1D37A663": {"FALSE": "MC-1B-Long.mp4", "TRUE": "MC-1B-Trans.mp4"},
     "7DE49363": {"FALSE": "MC-2A-Long.mp4", "TRUE": "MC-2A-Trans.mp4"},
@@ -45,14 +44,43 @@ videos = {
 
 PROJECT_DIR = Path(os.path.abspath(__file__)).parent
 
+# Get screen height
+root = Tk()
+screen_height = root.winfo_screenheight()
+screen_width = root.winfo_screenwidth()
+
+# What fraction of the screen height the window should take up
+SCALE = 0.9
+
+# The videos are 1024x768 so 1.33 aspect ratio. This will make
+# sure the video doesn't get all distorted.
+VIDEO_ASPECT_RATIO = 1.33
+
+WINDOW_HEIGHT = screen_height
+WINDOW_WIDTH = screen_width
+
+WINDOW_NAME = "ultrasound"
+FULLSCREEN = True
+
+# if FULLSCREEN:
+#     cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
+#     #cv2.setWindowProperty(WINDOW_NAME, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+
 # Set the currently playing video to None
 current_video = None
 
-# # Find the serial port for the Arduino on the Mac
-# arduino_port = glob.glob('/dev/tty.usbmodem*')[0]  # Adjust the pattern if needed
-# 
-# # Open a connection to the Arduino's serial port
-# arduino = serial.Serial(arduino_port, 9600)
+# Set the RFID code and tilt sensor state to initial values
+rfid_code = None
+tilt_sensor = False
+
+ports = [port for port in serial.tools.list_ports.comports() if "Arduino" in port.description]
+# if len(ports) == 0:
+#     print("Error: No arduino ports found. Exiting...")
+#     sys.exit(1)
+# elif len(ports) > 1:
+#     print(f"Warning: More than one arduino found. Using the first one: {ports[0].description}")
+#
+# arduino = serial.Serial(ports[0], 9600)
 
 while True:
     # # Read a line of data from the serial port
@@ -66,8 +94,8 @@ while True:
     state = "TRUE"
 
     if rfid_code != id or tilt_sensor != state:  # Checks if RFID code or tilt sensor state has changed
-        if id in videos.keys():  # checks if 'id' is present as a key in the 'videos' dictionary
-            video_file = videos[id][state]  # creates a variable called 'video_file' to which we are assigning the value of 'videos[id][state]'
+        if id in VIDEOS.keys():  # checks if 'id' is present as a key in the 'videos' dictionary
+            video_file = VIDEOS[id][state]  # creates a variable called 'video_file' to which we are assigning the value of 'videos[id][state]'
             video_path = PROJECT_DIR / "videos" / video_file
             if current_video is not None:
                 current_video.release()
@@ -81,8 +109,8 @@ while True:
 
         if ret:
             # If a frame has been returned correctly, resize it and display it
-            frame = cv2.resize(frame, (3000, 1580))  # Set the desired dimensions here
-            cv2.imshow("cap1", frame)
+            frame = cv2.resize(frame, (int(WINDOW_WIDTH), int(WINDOW_HEIGHT)))  # Set the desired dimensions here
+            cv2.imshow(WINDOW_NAME, frame)
 
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q'):
