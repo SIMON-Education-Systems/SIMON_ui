@@ -44,6 +44,37 @@ VIDEOS = {
 
 PROJECT_DIR = Path(os.path.abspath(__file__)).parent
 
+# Set the currently playing video to None
+current_video = None
+
+# Set the RFID code and tilt sensor state to initial values
+rfid_code = None
+tilt_sensor = False
+
+arduino_port = None
+ports = [port for port in serial.tools.list_ports.comports()]
+
+# Exit if no ports are found
+if len(ports) == 0:
+    print("Error: No arduino ports found. Exiting...")
+    sys.exit(1)
+
+# Look for one with "Arduino" in the name
+for port in ports:
+    if "Arduino" in port.description:
+        arduino_port = port.name
+        print(f"Using port {port.name}")
+
+# Give the user a pick if none are found
+if arduino_port is None:
+    print("Could not determine port to use, please specify:")
+    for index,port in enumerate(ports):
+        print(f"{index}) {port.description}")
+    num = int(input("Port: "))
+    arduino_port = ports[num].device
+
+arduino = serial.Serial(arduino_port, 9600)
+
 # Get screen height
 root = Tk()
 screen_height = root.winfo_screenheight()
@@ -56,22 +87,6 @@ WINDOW_HEIGHT = screen_height*SCALE
 WINDOW_WIDTH = screen_width*SCALE
 
 WINDOW_NAME = "ultrasound"
-
-# Set the currently playing video to None
-current_video = None
-
-# Set the RFID code and tilt sensor state to initial values
-rfid_code = None
-tilt_sensor = False
-
-ports = [port for port in serial.tools.list_ports.comports() if "Arduino" in port.description]
-if len(ports) == 0:
-    print("Error: No arduino ports found. Exiting...")
-    sys.exit(1)
-elif len(ports) > 1:
-    print(f"Warning: More than one arduino found. Using the first one: {ports[0].description}")
-
-arduino = serial.Serial(ports[0], 9600)
 
 while True:
     # Read a line of data from the serial port
