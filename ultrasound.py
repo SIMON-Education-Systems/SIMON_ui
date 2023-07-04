@@ -4,7 +4,6 @@ import serial
 import serial.tools.list_ports
 import cv2
 import os
-from screeninfo import get_monitors
 
 # 'key' library of video file names and associated RFID codes
 VIDEOS = {
@@ -73,16 +72,8 @@ if arduino_port is None:
 
 arduino = serial.Serial(arduino_port, 9600)
 
-monitor = get_monitors()[0]
-
-screen_width = monitor.x
-screen_height = monitor.y
-
-# What fraction of the screen height the window should take up
-SCALE = 1.0
-
-WINDOW_HEIGHT = screen_height*SCALE
-WINDOW_WIDTH = screen_width*SCALE
+WINDOW_HEIGHT = 1050
+WINDOW_WIDTH = 1550
 
 WINDOW_NAME = "ultrasound"
 

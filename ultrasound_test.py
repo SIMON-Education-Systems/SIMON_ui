@@ -4,7 +4,6 @@ import serial
 import serial.tools.list_ports
 import cv2
 import os
-from screeninfo import get_monitors
 
 # 'key' library of video file names and associated RFID codes
 VIDEOS = {
@@ -50,16 +49,11 @@ rfid_code = None
 tilt_sensor = False
 
 # Get the screen width and height
-monitor = get_monitors()[0]
-screen_width = monitor.width
-screen_height = monitor.height
+screen_width = 1550
+screen_height = 1050
 
-# What fraction of the screen height the window should take up
-WIDTH_SCALE = 0.95
-HEIGHT_SCALE = 0.85
-
-WINDOW_HEIGHT = screen_height*HEIGHT_SCALE
-WINDOW_WIDTH = screen_width*WIDTH_SCALE
+WINDOW_HEIGHT = screen_height
+WINDOW_WIDTH = screen_width
 
 WINDOW_NAME = "ultrasound"
 
