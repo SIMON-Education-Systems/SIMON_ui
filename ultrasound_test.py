@@ -49,51 +49,24 @@ current_video = None
 rfid_code = None
 tilt_sensor = False
 
-arduino_port = None
-ports = [port for port in serial.tools.list_ports.comports()]
-
-# Exit if no ports are found
-if len(ports) == 0:
-    print("Error: No arduino ports found. Exiting...")
-    sys.exit(1)
-
-# Look for one with "Arduino" in the name
-for port in ports:
-    if "Arduino" in port.description:
-        arduino_port = port.name
-        print(f"Using port {port.name}")
-
-# Give the user a pick if none are found
-if arduino_port is None:
-    print("Could not determine port to use, please specify:")
-    for index,port in enumerate(ports):
-        print(f"{index}) {port.description}")
-    num = int(input("Port: "))
-    arduino_port = ports[num].device
-
-arduino = serial.Serial(arduino_port, 9600)
-
+# Get the screen width and height
 monitor = get_monitors()[0]
-
-screen_width = monitor.x
-screen_height = monitor.y
+screen_width = monitor.width
+screen_height = monitor.height
 
 # What fraction of the screen height the window should take up
-SCALE = 1.0
+WIDTH_SCALE = 0.95
+HEIGHT_SCALE = 0.85
 
-WINDOW_HEIGHT = screen_height*SCALE
-WINDOW_WIDTH = screen_width*SCALE
+WINDOW_HEIGHT = screen_height*HEIGHT_SCALE
+WINDOW_WIDTH = screen_width*WIDTH_SCALE
 
 WINDOW_NAME = "ultrasound"
 
 while True:
     # Read a line of data from the serial port
-    data = arduino.readline().decode()
-    cleandata = data.strip().split()
-    id = cleandata[0] + cleandata[1] + cleandata[2] + cleandata[3]
-    state = cleandata[4]
-    print(id)
-    print(state)
+    id = "BDAB8463"
+    state = "TRUE"
 
     if rfid_code != id or tilt_sensor != state:  # Checks if RFID code or tilt sensor state has changed
         if id in VIDEOS.keys():  # checks if 'id' is present as a key in the 'videos' dictionary
