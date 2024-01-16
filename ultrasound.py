@@ -1,5 +1,6 @@
 from pathlib import Path
 import sys
+import time
 import serial
 import serial.tools.list_ports
 import cv2
@@ -7,36 +8,8 @@ import os
 
 # 'key' library of video file names and associated RFID codes
 VIDEOS = {
-    "FD8F8E63": {"FALSE": "MC-1A-Long.mp4", "TRUE": "MC-1A-Trans.mp4"},
-    "1D37A663": {"FALSE": "MC-1B-Long.mp4", "TRUE": "MC-1B-Trans.mp4"},
-    "7DE49363": {"FALSE": "MC-2A-Long.mp4", "TRUE": "MC-2A-Trans.mp4"},
-    "EDE5A063": {"FALSE": "MC-2B-Long.mp4", "TRUE": "MC-2B-Trans.mp4"},
-    "8DAE8663": {"FALSE": "MC-3A-3B-LatSusLONG.mp4", "TRUE": "MC-3A-LatSusTRANS.mp4"},
-    "9D978E63": {"FALSE": "MC-3A-Long.mp4", "TRUE": "MC-3A-Trans.mp4"},
-    "8DA49363": {"FALSE": "MC-3B-Long.mp4", "TRUE": "MC-3B-Trans.mp4"},
-    "1D9D9363": {"FALSE": "MC-3B-Trans-LatSus.mp4", "TRUE": "MC-3B-Trans-LatSus.mp4"},
-    "0D5AAF63": {"FALSE": "MC-3C-Long.mp4", "TRUE": "MC-3C-Long.mp4"},
-    "6DAB9A63": {"FALSE": "MC-3C-Long-LatSus.mp4", "TRUE": "MC-3C-Trans-LatSus.mp4"},
-    "0DA08663": {"FALSE": "MT-1A-Long.mp4", "TRUE": "MT-1A-Trans.mp4"},
-    "4DC59363": {"FALSE": "MT-1A-1B-Long.mp4", "TRUE": "MT-1B-Trans.mp4"},
-    "3D8F8663": {"FALSE": "MT-2A-Long.mp4", "TRUE": "MC-2A-Trans.mp4"},
-    "9D36A663": {"FALSE": "MT-2A-Trans-Medial.mp4", "TRUE": "MT-2A-Trans-Medial.mp4"},
-    "EDF78463": {"FALSE": "MT-2B-Long.mp4", "TRUE": "MT-2B-Trans.mp4"},
-    "CD178E63": {"FALSE": "MT-3A-Long.mp4", "TRUE": "MT-3A-Trans.mp4"},
-    "2D4AAF63": {"FALSE": "MT-3B-4A-Lateral(splint).mp4", "TRUE": "MT-3B-4A-Lateral(splint).mp4"},
-    "FD26A563": {"FALSE": "MT-3B-Long.mp4", "TRUE": "MT-3B-Trans.mp4"},
-    "FD119963": {"FALSE": "MT-4A-4B-LatSusLONG.mp4", "TRUE": "MT-4A-LatSusTRANS.mp4"},
-    "5D8D8663": {"FALSE": "MT-4A-Long.mp4", "TRUE": "MT-4A-Trans.mp4"},
-    "5D8E8663": {"FALSE": "MT-4B-LatSusTRANS.mp4", "TRUE": "MT-4B-LatSusTRANS.mp4"},
-    "ED3DA663": {"FALSE": "MT-4B-Long.mp4", "TRUE": "MT-4B-Trans.mp4"},
-    "AD939D63": {"FALSE": "MT-4C-LatSusLONG.mp4", "TRUE": "MT-4C-LatSusTRANS.mp4"},
-    "8DF98463": {"FALSE": "MT-4C-Long.mp4", "TRUE": "MT-4C-Long.mp4"},
-    "0D8B9D63": {"FALSE": "P1-P2-P3-Long.mp4", "TRUE": "P1-Trans.mp4"},
-    "ADD39A63": {"FALSE": "P1-P2-P3-Long.mp4", "TRUE": "P2-Trans.mp4"},
-    "BDC1AB63": {"FALSE": "P1-P2-P3-Long.mp4", "TRUE": "P3-Trans.mp4"},
-    "5D6AA563": {"FALSE": "P1-P2-P3-Long.mp4", "TRUE": "P1-Trans.mp4"},
-    "BDAB8463": {"FALSE": "P1-P2-P3-Long.mp4", "TRUE": "P2-Trans.mp4"},
-    "BDB38D63": {"FALSE": "P1-P2-P3-Long.mp4", "TRUE": "P3-Trans.mp4"}
+    "8458709A": {"LONG": "MC-1A-Long.mp4", "TRAN": "MC-1A-Trans.mp4"},
+    "BDB38D63": {"LONG": "P1-P2-P3-Long.mp4", "TRAN": "P3-Trans.mp4"}
 }
 
 PROJECT_DIR = Path(os.path.abspath(__file__)).parent
@@ -72,41 +45,83 @@ if arduino_port is None:
 
 arduino = serial.Serial(arduino_port, 9600)
 
-WINDOW_HEIGHT = 1050
-WINDOW_WIDTH = 1550
+# WINDOW_HEIGHT = 1050
+# WINDOW_WIDTH = 1550
 
 WINDOW_NAME = "ultrasound"
 
-while True:
-    # Read a line of data from the serial port
-    data = arduino.readline().decode()
-    cleandata = data.strip().split()
-    id = cleandata[0] + cleandata[1] + cleandata[2] + cleandata[3]
-    state = cleandata[4]
-    print(id)
-    print(state)
+cv2.namedWindow(WINDOW_NAME, cv2.WND_PROP_FULLSCREEN)
+cv2.setWindowProperty(WINDOW_NAME,cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)
 
-    if rfid_code != id or tilt_sensor != state:  # Checks if RFID code or tilt sensor state has changed
-        if id in VIDEOS.keys():  # checks if 'id' is present as a key in the 'videos' dictionary
-            video_file = VIDEOS[id][state]  # creates a variable called 'video_file' to which we are assigning the value of 'videos[id][state]'
-            video_path = PROJECT_DIR / "videos" / video_file
-            if current_video is not None:
-                current_video.release()
-                cv2.destroyAllWindows()
-            rfid_code = id
-            tilt_sensor = state
-            current_video = cv2.VideoCapture(str(video_path))
+WAIT_FRAME = cv2.imread(str(PROJECT_DIR / "videos" / 'eq_limb_sim.png'))
+wait_stage = True
+EMPTY_TIME = 0.7 # seconds
 
-    if current_video is not None:
-        ret, frame = current_video.read()
+frame_time = time.time()
+wait_time = time.time()
 
-        if ret:
-            # If a frame has been returned correctly, resize it and display it
-            frame = cv2.resize(frame, (int(WINDOW_WIDTH), int(WINDOW_HEIGHT)))  # Set the desired dimensions here
-            cv2.imshow(WINDOW_NAME, frame)
+try:
+    while True:
 
-        key = cv2.waitKey(1) & 0xFF
-        if key == ord('q'):
-            # Exit program if q is pressed
-            sys.exit(0)
+        # Check to see if there is data waiting to be read
+        if arduino.in_waiting:
+            # Read a line of data from the serial port
+            data = arduino.readline().decode().strip()
+            wait_stage = False
+            wait_time = time.time()
+
+            try:
+                wait_stage = False
+                split_data = data.split()
+                id = split_data[0] + split_data[1] + split_data[2] + split_data[3]
+                state = split_data[4]
+            except:
+                print(f"-----------{data}----------")
+                continue
+        
+            # Checks if RFID code or tilt sensor state has changed
+            if rfid_code != id or tilt_sensor != state:  
+                # Checks if 'id' is present as a key in the 'videos' dictionary
+                if id in VIDEOS.keys():  
+                    # Creates a variable called 'video_file' to which we are 
+                    # assigning the value of 'videos[id][state]'
+                    video_file = VIDEOS[id][state]  
+                    video_path = PROJECT_DIR / "videos" / video_file
+                    # if current_video is not None:
+                    #     current_video.release()
+                    #     cv2.destroyAllWindows()
+                    rfid_code = id
+                    tilt_sensor = state
+                    current_video = cv2.VideoCapture(str(video_path))
+
+        if time.time() - wait_time > EMPTY_TIME:
+            wait_stage = True
+
+        if time.time() - frame_time > 0.037: # 27fps
+            frame_time = time.time()
+            # Show the waiting image if the "EMPTY" command has been sent
+            if wait_stage:
+                cv2.imshow(WINDOW_NAME, WAIT_FRAME)
+                key = cv2.waitKey(1) & 0xFF
+                if key == ord('q'):
+                    # Exit program if q is pressed
+                    sys.exit(0)
+            else:
+                if current_video is not None:
+                    ret, frame = current_video.read()
+
+                    if ret:
+                        # If a frame has been returned correctly, resize it and display it
+                        # frame = cv2.resize(frame, (int(WINDOW_WIDTH), int(WINDOW_HEIGHT)))  # Set the desired dimensions here
+                        cv2.imshow(WINDOW_NAME, frame)
+                    else:
+                        current_video.set(cv2.CAP_PROP_POS_FRAMES, 0)
+
+                    key = cv2.waitKey(1) & 0xFF
+                    if key == ord('q'):
+                        # Exit program if q is pressed
+                        sys.exit(0)
+except KeyboardInterrupt:
+    print("exiting...")
+    sys.exit(0)
 

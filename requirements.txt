@@ -3,5 +3,5 @@ opencv_python
 pyserial
 pyinstaller
 screeninfo
-cython
-pyobjus
+# cython
+# pyobjus

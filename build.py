@@ -2,4 +2,4 @@
 
 import os
 
-os.system(f"pyinstaller --onefile --add-data \"./videos/*.mp4{os.pathsep}videos\" ./ultrasound.py")
+os.system(f"pyinstaller --onefile --add-data \"./videos/*{os.pathsep}videos\" ./ultrasound.py")
