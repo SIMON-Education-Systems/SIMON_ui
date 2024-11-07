@@ -251,7 +251,7 @@ class Simon:
                 try:
                     split_data = data.split()
                     id = split_data[0] + split_data[1] + split_data[2] + split_data[3]
-                    state = split_data[4]
+                    state = 0 if split_data[4] == 'TRUE' else 1
                     wait_stage = False
                 except:
                     print(f"-----------{data}----------")
