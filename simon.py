@@ -56,6 +56,9 @@ class TagSettings(QMainWindow, rsw.Ui_MainWindow):
         self.save_button.clicked.connect(lambda: self.save_settings(list_item))
         self.cancel_button.clicked.connect(self.close_window)
 
+        self.m_mode_button.setVisible(False)
+        self.m_mode_label.setVisible(False)
+
         self.normal_tran = list_item.normal_tran
         self.normal_lon = list_item.normal_lon
         self.doppler_tran = list_item.doppler_tran
@@ -96,9 +99,16 @@ class MainWindow(QMainWindow, smw.Ui_MainWindow):
     selected_com_port = None
     rfid_list: List[RfidEntry] = [] 
     simon = None
+    mode = None
 
-    def __init__(self, parent=None) -> None:
-        super().__init__(parent)
+    def __init__(self, args) -> None:
+        super().__init__()
+
+        if args:
+            self.mode = args[1]
+        
+        print(args[1])
+
         self.setupUi(self)
 
         # Set window to fixed size
@@ -107,8 +117,6 @@ class MainWindow(QMainWindow, smw.Ui_MainWindow):
         self.connect_signals()
 
         self.scan_ports()
-
-        self.show()
     
     # function to define connections
     def connect_signals(self):
@@ -203,7 +211,7 @@ class MainWindow(QMainWindow, smw.Ui_MainWindow):
                 item = self.rfid_list.item(i) # type: ignore
                 rfid_dict[item.rfid_id] = [item.normal_tran, item.normal_lon, item.doppler_tran, item.doppler_lon]
 
-            self.simon = Simon(self.selected_com_port.device, rfid_dict)
+            self.simon = Simon(self.mode, self.selected_com_port.device, rfid_dict)
 
             # Gray out the launch button while the program is running
             self.launch_button.setEnabled(False) 
@@ -225,7 +233,7 @@ WINDOW_NAME = "ultrasound"
 
 class Simon:
 
-    def __init__(self, com_port, rfid_dict) -> None:
+    def __init__(self, mode, com_port, rfid_dict) -> None:
         self.com_port = com_port
         self.rfid_dict = rfid_dict
         self.stop_video = False
@@ -325,5 +333,6 @@ class Simon:
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = MainWindow()
+    window = MainWindow(sys.argv)
+    window.show()
     sys.exit(app.exec())
