@@ -101,14 +101,11 @@ class MainWindow(QMainWindow, smw.Ui_MainWindow):
     simon = None
     mode = None
 
-    def __init__(self, args) -> None:
+    def __init__(self, mode='ultrasound') -> None:
         super().__init__()
 
-        if args:
-            self.mode = args[1]
+        self.mode = mode
         
-        print(args[1])
-
         self.setupUi(self)
 
         # Set window to fixed size
@@ -269,7 +266,7 @@ class Simon:
                     print("Error reading data from serial port")
                     continue
                 # Print data - timestamp
-                # print(f"{time.time()} - {data}")
+                print(f"{data} - {time.time()}")
                 wait_stage = False
                 wait_time = time.time()
 
@@ -333,6 +330,9 @@ class Simon:
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = MainWindow(sys.argv)
+    if len(sys.argv) > 1:
+        window = MainWindow(mode=sys.argv[1])
+    else:
+        window = MainWindow()
     window.show()
     sys.exit(app.exec())
