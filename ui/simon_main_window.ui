@@ -35,7 +35,7 @@
       <x>20</x>
       <y>10</y>
       <width>281</width>
-      <height>121</height>
+      <height>91</height>
      </rect>
     </property>
     <property name="sizePolicy">
@@ -51,7 +51,7 @@
      <string/>
     </property>
     <property name="pixmap">
-     <pixmap>simon.jpg</pixmap>
+     <pixmap>../media/simon_logo_2.svg</pixmap>
     </property>
     <property name="scaledContents">
      <bool>true</bool>
@@ -64,9 +64,9 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>190</y>
+      <y>160</y>
       <width>281</width>
-      <height>201</height>
+      <height>231</height>
      </rect>
     </property>
     <property name="autoFillBackground">
@@ -86,7 +86,7 @@
     <property name="geometry">
      <rect>
       <x>210</x>
-      <y>160</y>
+      <y>130</y>
       <width>91</width>
       <height>21</height>
      </rect>
@@ -99,7 +99,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>140</y>
+      <y>110</y>
       <width>281</width>
       <height>16</height>
      </rect>
@@ -133,7 +133,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>160</y>
+      <y>130</y>
       <width>181</width>
       <height>21</height>
      </rect>
