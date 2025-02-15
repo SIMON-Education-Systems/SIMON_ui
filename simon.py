@@ -95,6 +95,7 @@ class TagSettings(QMainWindow, rsw.Ui_MainWindow):
 class MainWindow(QMainWindow, smw.Ui_MainWindow):
     selected_com_port = None
     rfid_list: List[RfidEntry] = [] 
+    simon = None
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -211,6 +212,11 @@ class MainWindow(QMainWindow, smw.Ui_MainWindow):
 
             # Enable the launch button after the program has finished
             self.launch_button.setEnabled(True) 
+            
+    def closeEvent(self, event):
+        if self.simon:    
+            self.simon.close_window()
+        event.accept()
     
     def close_window(self):
         self.close()
@@ -222,8 +228,11 @@ class Simon:
     def __init__(self, com_port, rfid_dict) -> None:
         self.com_port = com_port
         self.rfid_dict = rfid_dict
-
-
+        self.stop_video = False
+    
+    def close_window(self):
+        self.stop_video = True
+    
     def start(self):
 
         cv2.namedWindow(WINDOW_NAME, cv2.WND_PROP_FULLSCREEN)
@@ -238,21 +247,35 @@ class Simon:
         wait_stage = True
         rfid_code = None
         tilt_sensor = False
+        motion_mode = False
+        
 
         while True:
 
             # Check to see if there is data waiting to be read
             if arduino.in_waiting:
                 # Read a line of data from the serial port
-                data = arduino.readline().decode().strip()
+                try:
+                    data = arduino.readline().decode().strip()
+                except:
+                    print("Error reading data from serial port")
+                    continue
+                # Print data - timestamp
+                # print(f"{time.time()} - {data}")
                 wait_stage = False
                 wait_time = time.time()
 
                 try:
-                    split_data = data.split()
-                    id = split_data[0] + split_data[1] + split_data[2] + split_data[3]
-                    state = 0 if split_data[4] == 'TRUE' else 1
+                    split_data = data.split("|")
+                    id = split_data[0]
+                    x = float(split_data[1])
+                    y = float(split_data[2])
+                    z = float(split_data[3])
                     wait_stage = False
+                    if abs(y) >= 5:
+                        state = True
+                    else:
+                        state = False
                 except:
                     print(f"-----------{data}----------")
                     continue
@@ -266,13 +289,16 @@ class Simon:
                         tilt_sensor = state
                         current_video = cv2.VideoCapture(video_path)
             
-            # if time.time() - wait_time > 0.7:
-            #     wait_stage = True
+            if time.time() - wait_time > 0.7:
+                wait_stage = True
             
             if wait_stage:
                 cv2.imshow(WINDOW_NAME, cv2.imread("eq_limb_sim.png"))
                 key = cv2.waitKey(25) & 0xFF
-                if key == ord('q'):
+                if key == ord('m'):
+                    # Switch between motion mode and non-motion mode
+                    motion_mode = not motion_mode
+                if key == ord('q') or self.stop_video:
                     cv2.destroyAllWindows()
                     break
             else:
@@ -283,15 +309,18 @@ class Simon:
                     else:
                         current_video.set(cv2.CAP_PROP_POS_FRAMES, 0)
                     key = cv2.waitKey(25) & 0xFF
-                    if key == ord('q'):
+                    if key == ord('m'):
+                        # Switch between motion mode and non-motion mode
+                        motion_mode = not motion_mode
+                    if key == ord('q') or self.stop_video:
                         # Exit program if q is pressed
                         cv2.destroyAllWindows()
                         break
 
+        # When the program exits, release the video capture object and destroy all windows
         if current_video:
             current_video.release()
         cv2.destroyAllWindows()
-            
 
 
 if __name__ == "__main__":
