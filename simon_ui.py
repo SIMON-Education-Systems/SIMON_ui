@@ -1,3 +1,7 @@
+"""
+Code for the Simon UI.
+.
+"""
 import json
 import sys
 
@@ -11,9 +15,9 @@ from PyQt6.QtWidgets import (
 import qdarkstyle
 import serial
 import serial.tools.list_ports
+from simon_core import Simon
 import rfid_settings_window as rsw
 import simon_main_window as smw
-from simon import Simon
 
 
 class RfidEntry(QListWidgetItem):
