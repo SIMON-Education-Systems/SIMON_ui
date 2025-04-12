@@ -25,6 +25,9 @@
   <property name="windowTitle">
    <string>SIMON</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QLabel" name="SIMON_label">
     <property name="enabled">
@@ -32,10 +35,10 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>40</x>
       <y>10</y>
-      <width>281</width>
-      <height>91</height>
+      <width>240</width>
+      <height>90</height>
      </rect>
     </property>
     <property name="sizePolicy">
@@ -47,11 +50,14 @@
     <property name="cursor">
      <cursorShape>ArrowCursor</cursorShape>
     </property>
+    <property name="autoFillBackground">
+     <bool>false</bool>
+    </property>
     <property name="text">
      <string/>
     </property>
     <property name="pixmap">
-     <pixmap>../media/simon_logo_2.svg</pixmap>
+     <pixmap>../media/white_letters.svg</pixmap>
     </property>
     <property name="scaledContents">
      <bool>true</bool>
@@ -209,7 +215,6 @@
    <addaction name="menuFile"/>
    <addaction name="menuHelp"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
   <action name="actionSupport">
    <property name="text">
     <string>Support</string>
