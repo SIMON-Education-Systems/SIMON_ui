@@ -3,7 +3,10 @@ Code for the Simon UI.
 .
 """
 import json
+from pathlib import Path
 import sys
+import webbrowser
+import os.path
 
 from typing import List
 from PyQt6.QtWidgets import (
@@ -11,13 +14,17 @@ from PyQt6.QtWidgets import (
     QMainWindow,
     QFileDialog,
     QListWidgetItem,
+    QDialog,
+    QLabel,
+    QVBoxLayout
 )
 import qdarkstyle
 import serial
 import serial.tools.list_ports
 from simon_core import Simon
-import rfid_settings_window as rsw
-import simon_main_window as smw
+import ui.rfid_settings_window as rsw
+import ui.simon_main_window as smw
+
 
 
 class RfidEntry(QListWidgetItem):
@@ -108,6 +115,7 @@ class MainWindow(QMainWindow, smw.Ui_MainWindow):
     rfid_list: List[RfidEntry] = []
     simon = None
     mode = None
+    PROJECT_DIR = Path(os.path.abspath(__file__)).parent
 
     def __init__(self, mode='ultrasound') -> None:
         super().__init__()
@@ -148,6 +156,30 @@ class MainWindow(QMainWindow, smw.Ui_MainWindow):
 
         # Quit the program when the user selects the quit option
         self.actionQuit.triggered.connect(self.close_window)
+
+        self.actionTutorial.triggered.connect(self.open_tutorial)
+
+        self.actionSupport.triggered.connect(self.open_support)
+
+    
+    def open_support(self):
+        class CustomSupportDialog(QDialog):
+            def __init__(self, parent=None):
+                super().__init__(parent)
+                layout = QVBoxLayout()
+                self.setWindowTitle("Support")
+                # self.setGeometry(0, 0, 200, 200)
+                self.message =  QLabel("For support, please email us at: support@simonedu.org and one of our team members will get back to you as soon as possible. Thank you for your patience.")
+                layout.addWidget(self.message)
+                self.setLayout(layout)
+        # Open a website with the support
+        dlg = CustomSupportDialog(self)
+        dlg.setWindowTitle("Support")
+        dlg.exec()
+    
+    def open_tutorial(self):
+        # Open a website with the tutorial
+        webbrowser.open("https://simonedu.org/tutorials")
 
     # function to set the COM port
     def set_com_port(self):
@@ -197,6 +229,7 @@ class MainWindow(QMainWindow, smw.Ui_MainWindow):
         # open dialog to select file
         file_path, _ = QFileDialog.getOpenFileName(
             self, "Load RFID List", "", "JSON Files (*.json)")
+        self.rfid_list.clear()
         if file_path:
             with open(file_path, 'r', encoding='utf8') as file:
                 rfid_dict = json.load(file)
@@ -223,7 +256,7 @@ class MainWindow(QMainWindow, smw.Ui_MainWindow):
                                            item.normal_lon, item.doppler_tran, item.doppler_lon]
 
             self.simon = Simon(
-                self.mode, self.selected_com_port.device, rfid_dict)
+                self.mode, self.selected_com_port.device, rfid_dict, self.PROJECT_DIR)
 
             # Gray out the launch button while the program is running
             self.launch_button.setEnabled(False)
@@ -246,6 +279,7 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     app.setStyleSheet(qdarkstyle.load_stylesheet())
+
 
     if len(sys.argv) > 1:
         window = MainWindow(mode=sys.argv[1])
